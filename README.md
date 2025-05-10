@@ -111,10 +111,8 @@ The project offers several ways to customize the analysis and visualization:
     * Normalizing the data.
     * Adjusting other plot aesthetics.
 
-## License
-
-This project is licensed under the MIT License. This means you are free to use, modify, and share the code, even for commercial purposes. See the full `LICENSE` file for details.
 
 ## Contact
 
-Created by Even Storeheier. Feel free to reach out with any questions, suggestions, or contributions. (Add contact info here, like email or a link to your website/profile).
+Created by Even Storeheier. Feel free to reach out with any questions, suggestions, or contributions.
+Estoreheier@gmail.com
