@@ -24,7 +24,7 @@ def get_all_file_paths(folder_paths):
 def plot():
     # Define the base path and the path to the specific data folder
     base_path = os.path.dirname(os.path.abspath(__file__))
-    data_folder = os.path.join(base_path, 'test_data', '[4] testday_4', '[2] eq')
+    data_folder = os.path.join(base_path, 'test_data', '[1] testday_1', '[4] cooling', 'upper')
 
     # Retrieve all file paths from the specified data folder
     list_of_paths = get_all_file_paths([data_folder])
@@ -48,7 +48,7 @@ def plot():
 
     # Initialize analyzer and smooth the data to reduce noise
     analyzer = SpectralDataAnalyzer(processor.df)
-    analyzer.smooth_spectral_data(window_length=101, polyorder=1)
+    analyzer.smooth_spectral_data(window_length=301, polyorder=1)
 
     # Prepare the visualizer with the smoothed data
     visualizer = SpectralDataVisualizer(processor.df)
@@ -58,7 +58,7 @@ def plot():
         plot_average=False,                  # Choose to show all spectra instead of the average
         use_standardized=False,              # Use raw data without standardization
         use_normalized=False,                # Use raw intensity values without normalization
-        plot_gradient=False,                 # Choose to display raw spectra without their gradients
+        plot_gradient=True,                 # Choose to display raw spectra without their gradients
         group_by_spectrometer_id=False,      # Treat all spectra as a single group regardless of spectrometer ID
         show_color_background=True,          # Add background color bands to indicate wavelength ranges
         title='Ammonia flow stopped',        # Set the plot title
@@ -69,8 +69,8 @@ def plot():
 def subplot():
     # Define the base path and two subfolders for comparison
     base_path = os.path.dirname(os.path.abspath(__file__))
-    data_folder_1 = os.path.join(base_path, 'test_data', '[4] testday_4', '[2] eq', 'lower')
-    data_folder_2 = os.path.join(base_path, 'test_data', '[4] testday_4', '[2] eq', 'upper')
+    data_folder_1 = os.path.join(base_path, 'test_data', '[4] testday_4', '[6] all')
+    data_folder_2 = os.path.join(base_path, 'test_data', '[4] testday_4', '[6] all')
 
     # Retrieve all file paths from both data folders
     list_of_paths_1 = get_all_file_paths([data_folder_1])
@@ -90,13 +90,13 @@ def subplot():
     # Process spectral data from both sources
     processor_1 = SpectralDataProcessor(
         list_of_paths_1,
-        wavelength_range=(200, 1050),
+        wavelength_range=(300, 1050),
         interpolation_points=3648,
         shift_300nm=3
     )
     processor_2 = SpectralDataProcessor(
         list_of_paths_2,
-        wavelength_range=(200, 1050),
+        wavelength_range=(300, 1050),
         interpolation_points=3648,
         shift_300nm=3
     )
@@ -108,24 +108,30 @@ def subplot():
     analyzer_2 = SpectralDataAnalyzer(processor_2.df)
     analyzer_2.smooth_spectral_data(window_length=51, polyorder=2)
 
+    
+    # Slice the first 20 rows from the smoothed data for both datasets
+    #analyzer_2.smooth_data = analyzer_2.smooth_data.groupby('name').head(20)
+    #analyzer_1.smooth_data = analyzer_1.smooth_data.groupby('name').head(20)
+
+
     # Create subplot comparing the two datasets
     visualizer = SpectralDataVisualizer(analyzer_1.smooth_data)
     visualizer.plot_subplots(
         processor1_df=analyzer_1.smooth_data,        # First subplot data (e.g. upper sensor)
         processor2_df=analyzer_2.smooth_data,        # Second subplot data (e.g. lower sensor)
-        title='Pressure test',                       # Title for the figure
-        processor1_label="Upper spectrometer",       # Label for the first subplot
-        processor2_label="Lower spectrometer",       # Label for the second subplot
+        title='All spectra from 4th test day',                          # Title for the figure
+        processor1_label="All spectra",       # Label for the first subplot
+        processor2_label="Average spectra",       # Label for the second subplot
         use_standardized=False,                      # Use raw data for plotting
         use_normalized=False,                        # Avoid normalization to keep original intensity
         show_color_background=True,                  # Include wavelength-based color shading
-        group_by_spectrometer_id=False,              # Combine data across spectrometers if needed
+        group_by_spectrometer_id=True,              # Combine data across spectrometers if needed
         save_path=os.path.join(save_folder_path, 'spectral_subplot.png'),  # Output path
         gradient=False                               # Choose to show original spectra without derivative
     )
 
 
 if __name__ == "__main__":
-    plot()
+    #plot()
     subplot()
     print("Plotting complete.")

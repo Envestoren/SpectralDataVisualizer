@@ -1,4 +1,5 @@
 from re import sub
+from turtle import pos
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -116,51 +117,60 @@ class SpectralDataVisualizer:
     def _plot_individual_spectra(self, ax, df, cmap, plot_gradient):
         """
         Helper method to plot individual spectral lines with optional gradient coloring.
+        Includes a global colorbar labeled 'Start' and 'End' if gradient is enabled.
         """
         unique_file_indices = df[['name', 'spectrometer_id']].drop_duplicates()
+
+        # Use a shared colormap and normalization for consistent coloring and global colorbar
+        if plot_gradient:
+            shared_cmap = plt.get_cmap('viridis')  # Choose a continuous colormap
+            all_datetimes = pd.to_datetime(df['datetime'])
+            norm = plt.Normalize(all_datetimes.min().timestamp(), all_datetimes.max().timestamp())
+        else:
+            shared_cmap = cmap
+            norm = None  # Not needed when not plotting gradient
+
         for i, (name, spectrometer_id) in enumerate(unique_file_indices.values):
             subset = df[(df['name'] == name) & (df['spectrometer_id'] == spectrometer_id)]
             wavelengths = subset.columns[5:].astype(float)
             datetimes = pd.to_datetime(subset['datetime'])
-            norm = plt.Normalize(datetimes.min().timestamp(), datetimes.max().timestamp())
 
             for j, (_, row) in enumerate(subset.iterrows()):
                 label = f'{name}' if j == 0 else None
-                color = self._get_line_color(cmap, i, plot_gradient, datetimes, norm, j)
+                color = self._get_line_color(shared_cmap, i, plot_gradient, datetimes, norm, j)
                 ax.plot(wavelengths, row[5:], label=label, color=color, lw=1)
+
+        # Add one global colorbar if using gradient
+        if plot_gradient:
+            sm = plt.cm.ScalarMappable(cmap=shared_cmap, norm=norm)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax, orientation='horizontal', pad=0.2)
+            cbar.set_ticks([norm.vmin, norm.vmax])
+            cbar.set_ticklabels(['Start', 'End'])
+    
+
 
     def _get_line_color(self, cmap, i, plot_gradient, datetimes, norm, index, fig=None, ax=None):
         """
-        Get the color for a spectral line with or without gradient coloring and add a color bar.
+        Get the color for a spectral line using either a shared colormap and normalization
+        or a static colormap if gradient coloring is disabled.
 
         Parameters:
-        cmap (Colormap): The base colormap for assigning colors.
-        i (int): Index of the current plot.
+        cmap (Colormap): The shared colormap for assigning colors.
+        i (int): Index of the current plot (used only when gradient is False).
         plot_gradient (bool): Whether to use gradient coloring.
         datetimes (Series): Datetime data for the spectra.
-        norm (Normalize): A normalization object for mapping datetimes to [0, 1].
+        norm (Normalize): A normalization object for mapping timestamps to [0, 1].
         index (int): Index of the current data point.
-        fig (Figure): Matplotlib Figure object (required for plotting color bar).
-        ax (Axes): Matplotlib Axes object (required for plotting color bar).
+        fig (Figure): Unused (kept for compatibility).
+        ax (Axes): Unused (kept for compatibility).
 
         Returns:
-        color: The color or gradient for the plotted line.
+        color: The color for the plotted line.
         """
         if plot_gradient:
-            tab10 = plt.get_cmap('tab10')
-            base_color = cmap(i % cmap.N)
-            gradient_colors = [tab10(1), 'white', 'green', 'purple', 'orange', 'pink']  # Gradient color options
-            secondary_color = gradient_colors[i % len(gradient_colors)]  # Rotate through gradient colors
-            grad_cmap = LinearSegmentedColormap.from_list('custom_cmap', [base_color, secondary_color])
-
-            # Add a color bar for this gradient
-            if fig is not None and ax is not None:
-                sm = plt.cm.ScalarMappable(cmap=grad_cmap, norm=norm)
-                sm.set_array([])  # Required for ScalarMappable
-                cbar = fig.colorbar(sm, ax=ax, orientation='vertical', pad=0.02)
-                cbar.set_label('Timestamp', fontsize=12)
-
-            return grad_cmap(norm(datetimes.iloc[index].timestamp()))
+            timestamp = datetimes.iloc[index].timestamp()
+            return cmap(norm(timestamp))
 
         return cmap(i % cmap.N)
 
@@ -254,7 +264,7 @@ class SpectralDataVisualizer:
             df_to_plot = self.df
 
         cmap = plt.get_cmap('tab10')
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(16, 12))
 
         if group_by_spectrometer_id:
             self._plot_by_spectrometer_id(ax, df_to_plot, cmap, show_color_background, title, plot_average)
@@ -267,6 +277,8 @@ class SpectralDataVisualizer:
         if legend:
             for line in legend.get_lines():
                 line.set_linewidth(4.0)  # Set the linewidth of the legend lines
+
+
 
         # Save or show the plot
         if save_path:
@@ -347,7 +359,7 @@ class SpectralDataVisualizer:
 
         # Create subplots
         cmap = plt.get_cmap('tab10')
-        fig, axs = plt.subplots(2, 1, figsize=(13, 13), sharex=True)
+        fig, axs = plt.subplots(2, 1, figsize=(16, 10), sharex=True)
         fig.suptitle(title if title else 'Spectral Data Comparison')
 
 
