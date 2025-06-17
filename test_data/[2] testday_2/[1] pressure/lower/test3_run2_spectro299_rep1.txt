@@ -1,5 +1,6 @@
 Data from test3_run2_spectro299_rep1 _SR4002991__0__10-54-49-420.txt Node
 
+Name: 8mm mm
 Date: Wed Mar 19 10:54:49 CET 2025
 User: EST035
 Spectrometer: SR400299

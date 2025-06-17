@@ -1,5 +1,6 @@
 Data from test2_run5_spectro299_rep1 _SR4002991__0__12-40-44-321.txt Node
 
+Name:Right
 Date: Tue Mar 18 12:40:44 CET 2025
 User: EST035
 Spectrometer: SR400299
